@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Settings (contains local paths)
+config/settings.ini
+
+# Database (if you don't want to commit it)
+database/*.db
+!database/sample.db
+
+# Reports
+*.csv
+*.xlsx
+
+# OS
+.DS_Store
+Thumbs.db
