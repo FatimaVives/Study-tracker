@@ -106,6 +106,17 @@ python cli.py export --type assignments --format csv --output assignments.csv
 python cli.py plot-grades --output grade_plot.png
 ```
 
+**Plot assignment timeline and weekly workload:**
+```bash
+python cli.py plot-timeline --output assignment_timeline.png
+```
+
+**Examples:**
+
+![Average grades per course](grade_plot.png)
+
+![Assignment timeline and workload](assignment_timeline.png)
+
 ## Project Structure
 
 ```
