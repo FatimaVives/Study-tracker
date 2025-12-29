@@ -6,6 +6,7 @@ import os
 from studytracker.db import Database
 from studytracker.course_service import CourseService
 from studytracker.assignment_service import AssignmentService
+from studytracker.study_session_service import StudySessionService
 from studytracker.reports import ReportGenerator
 from studytracker import plotting
 
@@ -249,6 +250,126 @@ def plot_timeline(args):
         sys.exit(1)
 
 
+def add_session(args):
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
+        
+        session_service = StudySessionService(db)
+        session_service.add_session(
+            args.course_id, 
+            args.date, 
+            args.duration, 
+            args.assignment_id if hasattr(args, 'assignment_id') else None,
+            args.notes if hasattr(args, 'notes') else None
+        )
+        
+        db.close()
+    except ValueError as e:
+        print(f"Validation error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error adding study session: {e}")
+        sys.exit(1)
+
+
+def list_sessions(args):
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
+        
+        session_service = StudySessionService(db)
+        
+        if args.course_id:
+            sessions = session_service.get_sessions_by_course(args.course_id)
+            print(f"\n=== Study Sessions for Course {args.course_id} ===")
+        else:
+            sessions = session_service.get_all_sessions()
+            print("\n=== All Study Sessions ===")
+        
+        if not sessions:
+            print("No study sessions found.")
+        else:
+            for session in sessions:
+                print(f"ID: {session['id']}")
+                if 'course_name' in session:
+                    print(f"  Course: {session['course_name']}")
+                if session['assignment_title']:
+                    print(f"  Assignment: {session['assignment_title']}")
+                print(f"  Date: {session['date']}")
+                hours = session['duration_minutes'] // 60
+                minutes = session['duration_minutes'] % 60
+                print(f"  Duration: {hours}h {minutes}m")
+                if session['notes']:
+                    print(f"  Notes: {session['notes']}")
+                print()
+        
+        db.close()
+    except Exception as e:
+        print(f"Error listing study sessions: {e}")
+        sys.exit(1)
+
+
+def session_report(args):
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
+        
+        session_service = StudySessionService(db)
+        summaries = session_service.get_study_summary_by_course()
+        
+        if not summaries:
+            print("No study sessions recorded yet.")
+        else:
+            print("\n=== Study Time Summary by Course ===")
+            print()
+            total_hours = 0
+            for summary in summaries:
+                print(f"{summary['course_name']}")
+                print(f"  Sessions: {summary['session_count']}")
+                print(f"  Total Time: {summary['total_hours']} hours")
+                print()
+                total_hours += summary['total_hours']
+            
+            print(f"Total Study Time: {total_hours} hours")
+        
+        db.close()
+    except Exception as e:
+        print(f"Error generating session report: {e}")
+        sys.exit(1)
+
+
+def plot_study_time(args):
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
+
+        plotting.plot_study_time_per_course(db, args.output)
+
+        db.close()
+    except Exception as e:
+        print(f"Error plotting study time: {e}")
+        sys.exit(1)
+
+
+def plot_efficiency(args):
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
+
+        plotting.plot_study_efficiency(db, args.output)
+
+        db.close()
+    except Exception as e:
+        print(f"Error plotting study efficiency: {e}")
+        sys.exit(1)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Study Tracker - Manage your courses and assignments',
@@ -345,6 +466,34 @@ Examples:
     parser_plot_timeline = subparsers.add_parser('plot-timeline', help='Plot assignment timeline and workload')
     parser_plot_timeline.add_argument('--output', default='assignment_timeline.png', help='Output image file path')
     parser_plot_timeline.set_defaults(func=plot_timeline)
+    
+    # Add study session command
+    parser_add_session = subparsers.add_parser('add-session', help='Add a study session')
+    parser_add_session.add_argument('--course-id', type=int, required=True, help='Course ID')
+    parser_add_session.add_argument('--date', required=True, help='Study date (YYYY-MM-DD)')
+    parser_add_session.add_argument('--duration', type=int, required=True, help='Duration in minutes')
+    parser_add_session.add_argument('--assignment-id', type=int, help='Related assignment ID (optional)')
+    parser_add_session.add_argument('--notes', help='Session notes (optional)')
+    parser_add_session.set_defaults(func=add_session)
+    
+    # List study sessions command
+    parser_list_sessions = subparsers.add_parser('list-sessions', help='List study sessions')
+    parser_list_sessions.add_argument('--course-id', type=int, help='Filter by course ID')
+    parser_list_sessions.set_defaults(func=list_sessions)
+    
+    # Study session report command
+    parser_session_report = subparsers.add_parser('session-report', help='Show study time summary by course')
+    parser_session_report.set_defaults(func=session_report)
+    
+    # Plot study time command
+    parser_plot_study = subparsers.add_parser('plot-study-time', help='Plot study time per course')
+    parser_plot_study.add_argument('--output', default='study_time_plot.png', help='Output image file path')
+    parser_plot_study.set_defaults(func=plot_study_time)
+    
+    # Plot study efficiency command
+    parser_plot_efficiency = subparsers.add_parser('plot-study-efficiency', help='Plot study time vs grades to identify areas needing more study')
+    parser_plot_efficiency.add_argument('--output', default='study_efficiency_plot.png', help='Output image file path')
+    parser_plot_efficiency.set_defaults(func=plot_efficiency)
     
     # Parse arguments
     args = parser.parse_args()
