@@ -86,28 +86,25 @@ python cli.py update-grade --assignment-id 1 --grade 95.5
 
 ### Export Reports
 
-**Export all data to CSV:**
+**Export full report (with weighted final grade) via pandas:**
 ```bash
-python cli.py export --type full --format csv --output report.csv
+python cli.py export-pandas --format csv --output full_report.csv
+# or Excel
+python cli.py export-pandas --format excel --output full_report.xlsx
+```
+Adds a summary row `WEIGHTED_FINAL_GRADE` (weighted by course credits). Excel exports color grades: >70 green, 50–70 orange, <50 red; the summary label is highlighted.
+
+**Export assignments only:**
+```bash
+python cli.py export --type assignments --format csv --output assignment_grades.csv
+# or Excel
+python cli.py export --type assignments --format excel --output assignment_grades.xlsx
 ```
 
 **Export courses to Excel:**
 ```bash
 python cli.py export --type courses --format excel --output courses.xlsx
 ```
-
-**Export assignments to CSV:**
-```bash
-python cli.py export --type assignments --format csv --output assignments.csv
-```
-
-**Export full report with pandas:**
-```bash
-python cli.py export-pandas --format csv --output full_report_pd.csv
-# or Excel
-python cli.py export-pandas --format excel --output full_report_pd.xlsx
-```
-Includes a final summary row `WEIGHTED_FINAL_GRADE` (weighted by course credits). Excel exports color grades: >70 green, 50–70 orange, <50 red.
 
 **Calculate weighted final grade (credits weighted):**
 ```bash
