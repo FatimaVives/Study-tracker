@@ -164,3 +164,134 @@ def plot_assignment_timeline(db: Database, filename: str) -> Optional[str]:
     plt.close()
     print(f"Plot saved to {filename}")
     return filename
+
+
+def plot_study_time_per_course(db: Database, filename: str) -> Optional[str]:
+    """Plot total study time per course as a horizontal bar chart"""
+    if not MATPLOTLIB_AVAILABLE:
+        print("Error: matplotlib is not installed. Run: pip install matplotlib")
+        return None
+    
+    query = """
+        SELECT 
+            c.name AS course_name,
+            COUNT(s.id) AS session_count,
+            SUM(s.duration_minutes) AS total_minutes,
+            ROUND(SUM(s.duration_minutes) / 60.0, 2) AS total_hours
+        FROM courses c
+        LEFT JOIN study_sessions s ON c.id = s.course_id
+        GROUP BY c.id, c.name
+        HAVING total_minutes > 0
+        ORDER BY total_hours DESC
+    """
+    
+    rows = db.fetch_all(query)
+    if not rows:
+        print("No study sessions found to plot.")
+        return None
+    
+    course_names = [row["course_name"] for row in rows]
+    total_hours = [row["total_hours"] for row in rows]
+    session_counts = [row["session_count"] for row in rows]
+    
+    # Create color gradient
+    max_hours = max(total_hours)
+    colors = plt.cm.Greens([h / max_hours for h in total_hours])
+    
+    plt.figure(figsize=(10, 6))
+    bars = plt.barh(course_names, total_hours, color=colors, edgecolor='black', linewidth=1)
+    
+    plt.xlabel('Total Study Time (hours)', fontsize=11)
+    plt.title('Study Time per Course', fontsize=13, fontweight='bold')
+    plt.grid(axis='x', linestyle='--', alpha=0.4)
+    
+    # Add value labels
+    for i, (bar, hours, count) in enumerate(zip(bars, total_hours, session_counts)):
+        plt.text(hours + 0.2, bar.get_y() + bar.get_height() / 2,
+                f"{hours}h ({count} sessions)",
+                va='center', fontsize=9)
+    
+    plt.tight_layout()
+    plt.savefig(filename, dpi=120)
+    plt.close()
+    print(f"Plot saved to {filename}")
+    return filename
+
+
+def plot_study_efficiency(db: Database, filename: str) -> Optional[str]:
+    """Plot study time vs average grade per course to identify where more studying is needed"""
+    if not MATPLOTLIB_AVAILABLE:
+        print("Error: matplotlib is not installed. Run: pip install matplotlib")
+        return None
+    
+    query = """
+        SELECT 
+            c.id,
+            c.name AS course_name,
+            COALESCE(ROUND(SUM(s.duration_minutes) / 60.0, 2), 0) AS total_hours,
+            COALESCE(AVG(a.grade), 0) AS avg_grade,
+            COUNT(a.id) AS assignment_count
+        FROM courses c
+        LEFT JOIN study_sessions s ON c.id = s.course_id
+        LEFT JOIN assignments a ON c.id = a.course_id AND a.grade IS NOT NULL
+        GROUP BY c.id, c.name
+        ORDER BY c.name
+    """
+    
+    rows = db.fetch_all(query)
+    if not rows:
+        print("No data found to plot.")
+        return None
+    
+    course_names = [row["course_name"] for row in rows]
+    study_hours = [row["total_hours"] for row in rows]
+    avg_grades = [row["avg_grade"] for row in rows]
+    
+    # Create figure with subplots
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    
+    # ===== LEFT PLOT: Study Hours =====
+    x_pos = range(len(course_names))
+    bars1 = axes[0].bar(x_pos, study_hours, color='#3498db', alpha=0.8, edgecolor='black', linewidth=1.5)
+    axes[0].set_ylabel('Study Time (hours)', fontsize=11, fontweight='bold')
+    axes[0].set_xlabel('Courses', fontsize=11, fontweight='bold')
+    axes[0].set_xticks(x_pos)
+    axes[0].set_xticklabels(course_names, rotation=30, ha='right')
+    axes[0].set_title('Total Study Time per Course', fontsize=12, fontweight='bold')
+    axes[0].grid(axis='y', linestyle='--', alpha=0.3)
+    
+    # Add value labels for study hours
+    for bar, hours in zip(bars1, study_hours):
+        height = bar.get_height()
+        if height > 0:
+            axes[0].text(bar.get_x() + bar.get_width() / 2., height,
+                        f'{hours}h', ha='center', va='bottom', fontsize=10, fontweight='bold')
+    
+    # ===== RIGHT PLOT: Average Grades =====
+    bars2 = axes[1].bar(x_pos, avg_grades, color='#e74c3c', alpha=0.8, edgecolor='black', linewidth=1.5)
+    axes[1].set_ylabel('Average Grade', fontsize=11, fontweight='bold')
+    axes[1].set_xlabel('Courses', fontsize=11, fontweight='bold')
+    axes[1].set_xticks(x_pos)
+    axes[1].set_xticklabels(course_names, rotation=30, ha='right')
+    axes[1].set_ylim(0, 100)
+    axes[1].set_title('Average Performance per Course', fontsize=12, fontweight='bold')
+    axes[1].grid(axis='y', linestyle='--', alpha=0.3)
+    
+    # Add value labels for grades
+    for bar, grade in zip(bars2, avg_grades):
+        height = bar.get_height()
+        if height > 0:
+            axes[1].text(bar.get_x() + bar.get_width() / 2., height,
+                        f'{grade:.1f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
+        else:
+            axes[1].text(bar.get_x() + bar.get_width() / 2., 5,
+                        'No grades', ha='center', va='bottom', fontsize=9, style='italic', color='gray')
+    
+    plt.suptitle('Study Time vs Performance Analysis - Where Do You Need to Study More?', 
+                fontsize=13, fontweight='bold', y=1.02)
+    
+    plt.tight_layout()
+    plt.savefig(filename, dpi=120, bbox_inches='tight')
+    plt.close()
+    print(f"Plot saved to {filename}")
+    return filename
