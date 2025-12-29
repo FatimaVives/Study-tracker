@@ -99,6 +99,13 @@ python cli.py export --type courses --format excel --output courses.xlsx
 python cli.py export --type assignments --format csv --output assignments.csv
 ```
 
+### Plotting
+
+**Plot average grades per course (PNG):**
+```bash
+python cli.py plot-grades --output grade_plot.png
+```
+
 ## Project Structure
 
 ```
@@ -166,6 +173,17 @@ python cli.py update-grade --assignment-id 1 --grade 92.0
 
 # 6. Export a report
 python cli.py export --type full --format excel --output my_studies.xlsx
+```
+## Virtual Environment
+
+This project was developed using a Python virtual environment.
+
+Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate   # Linux / macOS
+.venv\Scripts\activate      # Windows
 ```
 
 ## License

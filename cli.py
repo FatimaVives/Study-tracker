@@ -12,6 +12,7 @@ from studytracker.db import Database
 from studytracker.course_service import CourseService
 from studytracker.assignment_service import AssignmentService
 from studytracker.reports import ReportGenerator
+from studytracker import plotting
 
 
 def load_config():
@@ -167,6 +168,17 @@ def export_report(args):
     db.close()
 
 
+def plot_grades(args):
+    """Create a matplotlib plot of average grades per course."""
+    db_path = load_config()
+    db = Database(db_path)
+    db.connect()
+
+    plotting.plot_average_grade_per_course(db, args.output)
+
+    db.close()
+
+
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -244,6 +256,11 @@ Examples:
                                default='csv', help='Output format')
     parser_export.add_argument('--output', required=True, help='Output file path')
     parser_export.set_defaults(func=export_report)
+
+    # Plot command
+    parser_plot = subparsers.add_parser('plot-grades', help='Plot average grades per course')
+    parser_plot.add_argument('--output', default='grade_plot.png', help='Output image file path')
+    parser_plot.set_defaults(func=plot_grades)
     
     # Parse arguments
     args = parser.parse_args()
