@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""
-Study Tracker CLI
-Command-line interface for managing courses and assignments.
-"""
-
 import argparse
 import configparser
 import sys
@@ -16,12 +11,6 @@ from studytracker import plotting
 
 
 def load_config():
-    """
-    Load configuration from settings.ini file.
-    
-    Returns:
-        Database path from config file
-    """
     config = configparser.ConfigParser()
     config_path = 'config/settings.ini'
     
@@ -35,7 +24,6 @@ def load_config():
 
 
 def init_database(args):
-    """Initialize the database schema."""
     db_path = load_config()
     db = Database(db_path)
     db.connect()
@@ -50,7 +38,6 @@ def init_database(args):
 
 
 def add_course(args):
-    """Add a new course."""
     db_path = load_config()
     db = Database(db_path)
     db.connect()
@@ -62,7 +49,6 @@ def add_course(args):
 
 
 def list_courses(args):
-    """List all courses."""
     db_path = load_config()
     db = Database(db_path)
     db.connect()
@@ -85,7 +71,6 @@ def list_courses(args):
 
 
 def add_assignment(args):
-    """Add a new assignment."""
     db_path = load_config()
     db = Database(db_path)
     db.connect()
@@ -98,7 +83,6 @@ def add_assignment(args):
 
 
 def list_assignments(args):
-    """List all assignments."""
     db_path = load_config()
     db = Database(db_path)
     db.connect()
@@ -129,7 +113,6 @@ def list_assignments(args):
 
 
 def update_grade(args):
-    """Update an assignment grade."""
     db_path = load_config()
     db = Database(db_path)
     db.connect()
@@ -141,7 +124,6 @@ def update_grade(args):
 
 
 def export_report(args):
-    """Export data to CSV or Excel."""
     db_path = load_config()
     db = Database(db_path)
     db.connect()
@@ -169,7 +151,6 @@ def export_report(args):
 
 
 def plot_grades(args):
-    """Create a matplotlib plot of average grades per course."""
     db_path = load_config()
     db = Database(db_path)
     db.connect()
@@ -179,8 +160,17 @@ def plot_grades(args):
     db.close()
 
 
+def plot_timeline(args):
+    db_path = load_config()
+    db = Database(db_path)
+    db.connect()
+
+    plotting.plot_assignment_timeline(db, args.output)
+
+    db.close()
+
+
 def main():
-    """Main CLI entry point."""
     parser = argparse.ArgumentParser(
         description='Study Tracker - Manage your courses and assignments',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -261,6 +251,11 @@ Examples:
     parser_plot = subparsers.add_parser('plot-grades', help='Plot average grades per course')
     parser_plot.add_argument('--output', default='grade_plot.png', help='Output image file path')
     parser_plot.set_defaults(func=plot_grades)
+
+    # Plot timeline command
+    parser_plot_timeline = subparsers.add_parser('plot-timeline', help='Plot assignment timeline and workload')
+    parser_plot_timeline.add_argument('--output', default='assignment_timeline.png', help='Output image file path')
+    parser_plot_timeline.set_defaults(func=plot_timeline)
     
     # Parse arguments
     args = parser.parse_args()
