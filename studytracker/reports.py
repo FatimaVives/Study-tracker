@@ -1,8 +1,3 @@
-"""
-Reports module.
-Handles exporting data to CSV and Excel formats.
-"""
-
 import csv
 from typing import List, Dict
 from studytracker.db import Database
@@ -15,44 +10,23 @@ except ImportError:
 
 
 class ReportGenerator:
-    """Service class for generating reports."""
     
     def __init__(self, db: Database):
-        """
-        Initialize the report generator.
-        
-        Args:
-            db: Database instance
-        """
         self.db = db
     
     def export_courses_to_csv(self, filename: str):
-        """
-        Export all courses to a CSV file.
-        
-        Args:
-            filename: Output CSV file path
-        """
         query = "SELECT id, name, teacher, credits FROM courses ORDER BY name"
         rows = self.db.fetch_all(query)
         
         with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
-            # Write header
             writer.writerow(['ID', 'Course Name', 'Teacher', 'Credits'])
-            # Write data
             for row in rows:
                 writer.writerow([row['id'], row['name'], row['teacher'], row['credits']])
         
         print(f"Courses exported to {filename}")
     
     def export_assignments_to_csv(self, filename: str):
-        """
-        Export all assignments to a CSV file.
-        
-        Args:
-            filename: Output CSV file path
-        """
         query = """
             SELECT 
                 a.id,
@@ -68,9 +42,7 @@ class ReportGenerator:
         
         with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
-            # Write header
             writer.writerow(['ID', 'Course', 'Assignment', 'Due Date', 'Grade'])
-            # Write data
             for row in rows:
                 grade = row['grade'] if row['grade'] is not None else 'Not graded'
                 writer.writerow([row['id'], row['course_name'], row['title'], 
@@ -79,12 +51,6 @@ class ReportGenerator:
         print(f"Assignments exported to {filename}")
     
     def export_full_report_to_csv(self, filename: str):
-        """
-        Export a comprehensive report with courses and their assignments.
-        
-        Args:
-            filename: Output CSV file path
-        """
         query = """
             SELECT 
                 c.name as course_name,
@@ -101,9 +67,7 @@ class ReportGenerator:
         
         with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
-            # Write header
             writer.writerow(['Course', 'Teacher', 'Credits', 'Assignment', 'Due Date', 'Grade'])
-            # Write data
             for row in rows:
                 grade = row['grade'] if row['grade'] is not None else 'Not graded'
                 assignment = row['assignment_title'] if row['assignment_title'] else 'No assignments'
@@ -114,12 +78,6 @@ class ReportGenerator:
         print(f"Full report exported to {filename}")
     
     def export_courses_to_excel(self, filename: str):
-        """
-        Export all courses to an Excel file.
-        
-        Args:
-            filename: Output Excel file path
-        """
         if not EXCEL_AVAILABLE:
             print("Error: openpyxl library is not installed. Run: pip install openpyxl")
             return
@@ -132,24 +90,14 @@ class ReportGenerator:
         ws = wb.active
         ws.title = "Courses"
         
-        # Write header
         ws.append(['ID', 'Course Name', 'Teacher', 'Credits'])
-        
-        # Write data
         for row in rows:
             ws.append([row['id'], row['name'], row['teacher'], row['credits']])
         
-        # Save the workbook
         wb.save(filename)
         print(f"Courses exported to {filename}")
     
     def export_assignments_to_excel(self, filename: str):
-        """
-        Export all assignments to an Excel file.
-        
-        Args:
-            filename: Output Excel file path
-        """
         if not EXCEL_AVAILABLE:
             print("Error: openpyxl library is not installed. Run: pip install openpyxl")
             return
@@ -186,12 +134,6 @@ class ReportGenerator:
         print(f"Assignments exported to {filename}")
     
     def export_full_report_to_excel(self, filename: str):
-        """
-        Export a comprehensive report with courses and assignments to Excel.
-        
-        Args:
-            filename: Output Excel file path
-        """
         if not EXCEL_AVAILABLE:
             print("Error: openpyxl library is not installed. Run: pip install openpyxl")
             return
