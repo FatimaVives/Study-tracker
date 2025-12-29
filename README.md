@@ -15,6 +15,8 @@ A simple command-line application for tracking courses and assignments, built wi
 - Python 3.6+
 - SQLite3 (included with Python)
 - openpyxl (for Excel export)
+- matplotlib (for plots)
+- pandas (data handling, installed via requirements)
 
 ## Installation
 
@@ -97,6 +99,19 @@ python cli.py export --type courses --format excel --output courses.xlsx
 **Export assignments to CSV:**
 ```bash
 python cli.py export --type assignments --format csv --output assignments.csv
+```
+
+**Export full report with pandas:**
+```bash
+python cli.py export-pandas --format csv --output full_report_pd.csv
+# or Excel
+python cli.py export-pandas --format excel --output full_report_pd.xlsx
+```
+Includes a final summary row `WEIGHTED_FINAL_GRADE` (weighted by course credits). Excel exports color grades: >70 green, 50–70 orange, <50 red.
+
+**Calculate weighted final grade (credits weighted):**
+```bash
+python cli.py final-grade
 ```
 
 ### Plotting

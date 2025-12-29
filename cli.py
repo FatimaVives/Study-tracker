@@ -150,6 +150,32 @@ def export_report(args):
     db.close()
 
 
+def export_report_pandas(args):
+    db_path = load_config()
+    db = Database(db_path)
+    db.connect()
+
+    report_gen = ReportGenerator(db)
+    report_gen.export_full_report_with_pandas(args.output, args.format)
+
+    db.close()
+
+
+def final_grade(args):
+    db_path = load_config()
+    db = Database(db_path)
+    db.connect()
+
+    report_gen = ReportGenerator(db)
+    grade = report_gen.calculate_weighted_final_grade()
+    if grade == 0.0:
+        print("No graded assignments available to calculate final grade.")
+    else:
+        print(f"Weighted final grade: {grade}")
+
+    db.close()
+
+
 def plot_grades(args):
     db_path = load_config()
     db = Database(db_path)
@@ -246,6 +272,16 @@ Examples:
                                default='csv', help='Output format')
     parser_export.add_argument('--output', required=True, help='Output file path')
     parser_export.set_defaults(func=export_report)
+
+    # Export using pandas
+    parser_export_pd = subparsers.add_parser('export-pandas', help='Export full report using pandas')
+    parser_export_pd.add_argument('--format', choices=['csv', 'excel'], default='csv', help='Output format')
+    parser_export_pd.add_argument('--output', required=True, help='Output file path')
+    parser_export_pd.set_defaults(func=export_report_pandas)
+
+    # Final grade command
+    parser_final = subparsers.add_parser('final-grade', help='Calculate weighted final grade across courses')
+    parser_final.set_defaults(func=final_grade)
 
     # Plot command
     parser_plot = subparsers.add_parser('plot-grades', help='Plot average grades per course')
