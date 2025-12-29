@@ -7,7 +7,9 @@ A simple command-line application for tracking courses and assignments, built wi
 - Add and manage courses
 - Add and manage assignments
 - Track assignment grades
+- Track study sessions and study time
 - Export reports to CSV and Excel formats
+- Visualize data with plots (grades, timelines, study time)
 - Simple command-line interface
 
 ## Requirements
@@ -91,6 +93,33 @@ python cli.py list-assignments --course-id 1
 python cli.py update-grade --assignment-id 1 --grade 95.5
 ```
 
+### Study Sessions
+
+**Add a study session:**
+```bash
+python cli.py add-session --course-id 1 --date 2025-12-15 --duration 90
+```
+
+**Add a study session with assignment and notes:**
+```bash
+python cli.py add-session --course-id 1 --date 2025-12-16 --duration 120 --assignment-id 1 --notes "Reviewed chapter 5"
+```
+
+**List all study sessions:**
+```bash
+python cli.py list-sessions
+```
+
+**List study sessions for a specific course:**
+```bash
+python cli.py list-sessions --course-id 1
+```
+
+**Show study time summary:**
+```bash
+python cli.py session-report
+```
+
 ### Export Reports
 
 The application provides two export methods: `export-pandas` (enhanced with pandas, includes weighted final grade) and `export` (basic exports).
@@ -132,11 +161,18 @@ python cli.py plot-grades --output grade_plot.png
 python cli.py plot-timeline --output assignment_timeline.png
 ```
 
+**Plot study efficiency (study time vs grades - identify areas needing more study):**
+```bash
+python cli.py plot-study-efficiency --output study_efficiency_plot.png
+```
+
 **Examples:**
 
 ![Average grades per course](grade_plot.png)
 
 ![Assignment timeline and workload](assignment_timeline.png)
+
+![Study time vs performance analysis](study_efficiency_plot.png)
 
 ## Project Structure
 
@@ -156,6 +192,7 @@ study-tracker/
 │   ├── db.py                       # Database access layer
 │   ├── course_service.py           # Course business logic
 │   ├── assignment_service.py       # Assignment business logic
+│   ├── study_session_service.py    # Study session business logic
 │   ├── reports.py                  # Report generation
 │   └── plotting.py                 # Plotting and visualization
 ```
@@ -174,6 +211,14 @@ study-tracker/
 - `title` - Assignment title
 - `due_date` - Due date (YYYY-MM-DD)
 - `grade` - Grade (can be NULL)
+
+### Study Sessions Table
+- `id` - Primary key
+- `course_id` - Foreign key to courses
+- `assignment_id` - Foreign key to assignments (optional)
+- `date` - Study session date (YYYY-MM-DD)
+- `duration_minutes` - Duration in minutes
+- `notes` - Optional notes about the session
 
 ## Configuration
 
