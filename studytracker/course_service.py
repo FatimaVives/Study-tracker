@@ -8,11 +8,19 @@ class CourseService:
         self.db = db
     
     def add_course(self, name: str, teacher: str, credits: int) -> int:
+        # Validate inputs
+        if not name or not name.strip():
+            raise ValueError("Course name cannot be empty")
+        if not teacher or not teacher.strip():
+            raise ValueError("Teacher name cannot be empty")
+        if credits <= 0:
+            raise ValueError("Credits must be a positive number")
+        
         query = """
             INSERT INTO courses (name, teacher, credits)
             VALUES (?, ?, ?)
         """
-        cursor = self.db.execute(query, (name, teacher, credits))
+        cursor = self.db.execute(query, (name.strip(), teacher.strip(), credits))
         course_id = cursor.lastrowid
         print(f"Course added successfully! ID: {course_id}")
         return course_id

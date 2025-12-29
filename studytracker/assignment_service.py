@@ -1,5 +1,6 @@
 from typing import List, Optional
 from studytracker.db import Database
+from datetime import datetime
 
 
 class AssignmentService:
@@ -8,16 +9,41 @@ class AssignmentService:
         self.db = db
     
     def add_assignment(self, course_id: int, title: str, due_date: str, grade: Optional[float] = None) -> int:
+        # Validate inputs
+        if not title or not title.strip():
+            raise ValueError("Assignment title cannot be empty")
+        
+        # Validate date format
+        try:
+            datetime.strptime(due_date, '%Y-%m-%d')
+        except ValueError:
+            raise ValueError("Due date must be in YYYY-MM-DD format")
+        
+        # Validate grade if provided
+        if grade is not None:
+            if grade < 0 or grade > 100:
+                raise ValueError("Grade must be between 0 and 100")
+        
+        # Check if course exists
+        course_query = "SELECT id FROM courses WHERE id = ?"
+        course = self.db.fetch_one(course_query, (course_id,))
+        if not course:
+            raise ValueError(f"Course with ID {course_id} does not exist")
+        
         query = """
             INSERT INTO assignments (course_id, title, due_date, grade)
             VALUES (?, ?, ?, ?)
         """
-        cursor = self.db.execute(query, (course_id, title, due_date, grade))
+        cursor = self.db.execute(query, (course_id, title.strip(), due_date, grade))
         assignment_id = cursor.lastrowid
         print(f"Assignment added successfully! ID: {assignment_id}")
         return assignment_id
     
     def update_grade(self, assignment_id: int, grade: float) -> bool:
+        # Validate grade
+        if grade < 0 or grade > 100:
+            raise ValueError("Grade must be between 0 and 100")
+        
         query = "UPDATE assignments SET grade = ? WHERE id = ?"
         cursor = self.db.execute(query, (grade, assignment_id))
         

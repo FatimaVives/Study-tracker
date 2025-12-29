@@ -22,17 +22,24 @@ A simple command-line application for tracking courses and assignments, built wi
 
 1. Clone or download this repository
 
-2. Install dependencies:
+2. (Recommended) Create and activate a virtual environment:
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate      # Windows
+   source .venv/bin/activate   # Linux / macOS
+   ```
+
+3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Copy the example settings file:
+4. Copy the example settings file:
    ```bash
    copy config\settings.example.ini config\settings.ini
    ```
 
-4. Initialize the database:
+5. Initialize the database:
    ```bash
    python cli.py init
    ```
@@ -85,6 +92,8 @@ python cli.py update-grade --assignment-id 1 --grade 95.5
 ```
 
 ### Export Reports
+
+The application provides two export methods: `export-pandas` (enhanced with pandas, includes weighted final grade) and `export` (basic exports).
 
 **Export full report (with weighted final grade) via pandas:**
 ```bash
@@ -147,7 +156,8 @@ study-tracker/
 │   ├── db.py                       # Database access layer
 │   ├── course_service.py           # Course business logic
 │   ├── assignment_service.py       # Assignment business logic
-│   └── reports.py                  # Report generation
+│   ├── reports.py                  # Report generation
+│   └── plotting.py                 # Plotting and visualization
 ```
 
 ## Database Schema
@@ -196,17 +206,6 @@ python cli.py update-grade --assignment-id 1 --grade 92.0
 
 # 6. Export a report
 python cli.py export --type full --format excel --output my_studies.xlsx
-```
-## Virtual Environment
-
-This project was developed using a Python virtual environment.
-
-Create and activate a virtual environment:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate   # Linux / macOS
-.venv\Scripts\activate      # Windows
 ```
 
 ## License

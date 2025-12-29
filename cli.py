@@ -24,176 +24,229 @@ def load_config():
 
 
 def init_database(args):
-    db_path = load_config()
-    db = Database(db_path)
-    db.connect()
-    
-    schema_path = 'database/schema.sql'
-    if not os.path.exists(schema_path):
-        print(f"Error: {schema_path} not found!")
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
+        
+        schema_path = 'database/schema.sql'
+        if not os.path.exists(schema_path):
+            print(f"Error: {schema_path} not found!")
+            sys.exit(1)
+        
+        db.initialize_schema(schema_path)
+        db.close()
+    except Exception as e:
+        print(f"Error initializing database: {e}")
         sys.exit(1)
-    
-    db.initialize_schema(schema_path)
-    db.close()
 
 
 def add_course(args):
-    db_path = load_config()
-    db = Database(db_path)
-    db.connect()
-    
-    course_service = CourseService(db)
-    course_service.add_course(args.name, args.teacher, args.credits)
-    
-    db.close()
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
+        
+        course_service = CourseService(db)
+        course_service.add_course(args.name, args.teacher, args.credits)
+        
+        db.close()
+    except ValueError as e:
+        print(f"Validation error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error adding course: {e}")
+        sys.exit(1)
 
 
 def list_courses(args):
-    db_path = load_config()
-    db = Database(db_path)
-    db.connect()
-    
-    course_service = CourseService(db)
-    courses = course_service.get_all_courses()
-    
-    if not courses:
-        print("No courses found.")
-    else:
-        print("\n=== All Courses ===")
-        for course in courses:
-            print(f"ID: {course['id']}")
-            print(f"  Name: {course['name']}")
-            print(f"  Teacher: {course['teacher']}")
-            print(f"  Credits: {course['credits']}")
-            print()
-    
-    db.close()
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
+        
+        course_service = CourseService(db)
+        courses = course_service.get_all_courses()
+        
+        if not courses:
+            print("No courses found.")
+        else:
+            print("\n=== All Courses ===")
+            for course in courses:
+                print(f"ID: {course['id']}")
+                print(f"  Name: {course['name']}")
+                print(f"  Teacher: {course['teacher']}")
+                print(f"  Credits: {course['credits']}")
+                print()
+        
+        db.close()
+    except Exception as e:
+        print(f"Error listing courses: {e}")
+        sys.exit(1)
 
 
 def add_assignment(args):
-    db_path = load_config()
-    db = Database(db_path)
-    db.connect()
-    
-    assignment_service = AssignmentService(db)
-    grade = args.grade if args.grade is not None else None
-    assignment_service.add_assignment(args.course_id, args.title, args.due_date, grade)
-    
-    db.close()
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
+        
+        assignment_service = AssignmentService(db)
+        grade = args.grade if args.grade is not None else None
+        assignment_service.add_assignment(args.course_id, args.title, args.due_date, grade)
+        
+        db.close()
+    except ValueError as e:
+        print(f"Validation error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error adding assignment: {e}")
+        sys.exit(1)
 
 
 def list_assignments(args):
-    db_path = load_config()
-    db = Database(db_path)
-    db.connect()
-    
-    assignment_service = AssignmentService(db)
-    
-    if args.course_id:
-        assignments = assignment_service.get_assignments_by_course(args.course_id)
-        print(f"\n=== Assignments for Course {args.course_id} ===")
-    else:
-        assignments = assignment_service.get_all_assignments()
-        print("\n=== All Assignments ===")
-    
-    if not assignments:
-        print("No assignments found.")
-    else:
-        for assignment in assignments:
-            print(f"ID: {assignment['id']}")
-            if 'course_name' in assignment:
-                print(f"  Course: {assignment['course_name']}")
-            print(f"  Title: {assignment['title']}")
-            print(f"  Due Date: {assignment['due_date']}")
-            grade = assignment['grade'] if assignment['grade'] is not None else 'Not graded'
-            print(f"  Grade: {grade}")
-            print()
-    
-    db.close()
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
+        
+        assignment_service = AssignmentService(db)
+        
+        if args.course_id:
+            assignments = assignment_service.get_assignments_by_course(args.course_id)
+            print(f"\n=== Assignments for Course {args.course_id} ===")
+        else:
+            assignments = assignment_service.get_all_assignments()
+            print("\n=== All Assignments ===")
+        
+        if not assignments:
+            print("No assignments found.")
+        else:
+            for assignment in assignments:
+                print(f"ID: {assignment['id']}")
+                if 'course_name' in assignment:
+                    print(f"  Course: {assignment['course_name']}")
+                print(f"  Title: {assignment['title']}")
+                print(f"  Due Date: {assignment['due_date']}")
+                grade = assignment['grade'] if assignment['grade'] is not None else 'Not graded'
+                print(f"  Grade: {grade}")
+                print()
+        
+        db.close()
+    except Exception as e:
+        print(f"Error listing assignments: {e}")
+        sys.exit(1)
 
 
 def update_grade(args):
-    db_path = load_config()
-    db = Database(db_path)
-    db.connect()
-    
-    assignment_service = AssignmentService(db)
-    assignment_service.update_grade(args.assignment_id, args.grade)
-    
-    db.close()
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
+        
+        assignment_service = AssignmentService(db)
+        assignment_service.update_grade(args.assignment_id, args.grade)
+        
+        db.close()
+    except ValueError as e:
+        print(f"Validation error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error updating grade: {e}")
+        sys.exit(1)
 
 
 def export_report(args):
-    db_path = load_config()
-    db = Database(db_path)
-    db.connect()
-    
-    report_gen = ReportGenerator(db)
-    
-    # Determine report type and format
-    if args.type == 'courses':
-        if args.format == 'csv':
-            report_gen.export_courses_to_csv(args.output)
-        else:
-            report_gen.export_courses_to_excel(args.output)
-    elif args.type == 'assignments':
-        if args.format == 'csv':
-            report_gen.export_assignments_to_csv(args.output)
-        else:
-            report_gen.export_assignments_to_excel(args.output)
-    else:  # full
-        if args.format == 'csv':
-            report_gen.export_full_report_to_csv(args.output)
-        else:
-            report_gen.export_full_report_to_excel(args.output)
-    
-    db.close()
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
+        
+        report_gen = ReportGenerator(db)
+        
+        # Determine report type and format
+        if args.type == 'courses':
+            if args.format == 'csv':
+                report_gen.export_courses_to_csv(args.output)
+            else:
+                report_gen.export_courses_to_excel(args.output)
+        elif args.type == 'assignments':
+            if args.format == 'csv':
+                report_gen.export_assignments_to_csv(args.output)
+            else:
+                report_gen.export_assignments_to_excel(args.output)
+        else:  # full
+            if args.format == 'csv':
+                report_gen.export_full_report_to_csv(args.output)
+            else:
+                report_gen.export_full_report_to_excel(args.output)
+        
+        db.close()
+    except Exception as e:
+        print(f"Error exporting report: {e}")
+        sys.exit(1)
 
 
 def export_report_pandas(args):
-    db_path = load_config()
-    db = Database(db_path)
-    db.connect()
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
 
-    report_gen = ReportGenerator(db)
-    report_gen.export_full_report_with_pandas(args.output, args.format)
+        report_gen = ReportGenerator(db)
+        report_gen.export_full_report_with_pandas(args.output, args.format)
 
-    db.close()
+        db.close()
+    except Exception as e:
+        print(f"Error exporting report with pandas: {e}")
+        sys.exit(1)
 
 
 def final_grade(args):
-    db_path = load_config()
-    db = Database(db_path)
-    db.connect()
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
 
-    report_gen = ReportGenerator(db)
-    grade = report_gen.calculate_weighted_final_grade()
-    if grade == 0.0:
-        print("No graded assignments available to calculate final grade.")
-    else:
-        print(f"Weighted final grade: {grade}")
+        report_gen = ReportGenerator(db)
+        grade = report_gen.calculate_weighted_final_grade()
+        if grade == 0.0:
+            print("No graded assignments available to calculate final grade.")
+        else:
+            print(f"Weighted final grade: {grade}")
 
-    db.close()
+        db.close()
+    except Exception as e:
+        print(f"Error calculating final grade: {e}")
+        sys.exit(1)
 
 
 def plot_grades(args):
-    db_path = load_config()
-    db = Database(db_path)
-    db.connect()
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
 
-    plotting.plot_average_grade_per_course(db, args.output)
+        plotting.plot_average_grade_per_course(db, args.output)
 
-    db.close()
+        db.close()
+    except Exception as e:
+        print(f"Error plotting grades: {e}")
+        sys.exit(1)
 
 
 def plot_timeline(args):
-    db_path = load_config()
-    db = Database(db_path)
-    db.connect()
+    try:
+        db_path = load_config()
+        db = Database(db_path)
+        db.connect()
 
-    plotting.plot_assignment_timeline(db, args.output)
+        plotting.plot_assignment_timeline(db, args.output)
 
-    db.close()
+        db.close()
+    except Exception as e:
+        print(f"Error plotting timeline: {e}")
+        sys.exit(1)
 
 
 def main():
